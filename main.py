@@ -1,15 +1,15 @@
 import pygame
 import sys
-from setting import *
-from level import Level
 from sys import exit
 
+screen_width = 1200
+screen_height = 700
 
 pygame.init()
 screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption('Platformer')
 clock = pygame.time.Clock()
-level = Level(LEVEL_MAP,screen)
+
 
 while True:
     for event in pygame.event.get():
@@ -18,7 +18,7 @@ while True:
             sys.exit()
 
     screen.fill('black')
-    level.run()
+
 
     pygame.display.update()
     clock.tick(60)
