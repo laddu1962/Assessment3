@@ -24,7 +24,7 @@ def draw_grid():
         pygame.draw.line(screen, (255,255,255), (line * tile_size, 0), (line * tile_size, screen_height))
 
 
-class World():
+class World:
     def __int__(self, data):
         self.tile_list = []
 
@@ -65,7 +65,7 @@ while run:
 
     screen.blit(bg_img, (0, 0))
 
-    #world.draw()
+    world.draw()
 
     draw_grid()
 
