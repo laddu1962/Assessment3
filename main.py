@@ -44,6 +44,10 @@ class World():
                 col_count += 1
             row_count += 1
 
+    def draw(self):
+        for tile in self.tile_list:
+            screen.blit(tile[0], tile[1])
+
 
 world_data = [
     [1, 1, 1, 1, 1, 1],
@@ -61,7 +65,10 @@ while run:
 
     screen.blit(bg_img, (0, 0))
 
+    #world.draw()
+
     draw_grid()
+
     print(world.tile_list)
 
     for event in pygame.event.get():
