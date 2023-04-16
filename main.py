@@ -3,6 +3,9 @@ from pygame.locals import *
 
 pygame.init()
 
+clock = pygame.time.Clock()
+fps = 60
+
 screen_width = 1200
 screen_height = 700
 
@@ -12,13 +15,19 @@ pygame.display.set_caption('Platformer')
 
 tile_size = 64
 
-# bg_img = pygame.image.load('graphics/bg1.jpg')
+bg_img = pygame.image.load('graphics/backGround.png')
 
 
 class Player:
     def __init__(self, x, y):
-        img = pygame.image.load('graphics/player1.png')
-        self.image = pygame.transform.scale(img, (128, 128))
+        self.images_right = []
+        self.index = 0
+        self.counter = 0
+        for num in range(1, 9):
+            img_right = pygame.image.load(f'graphics/player0{num}.png')
+            img_right = pygame.transform.scale(img_right, (128, 128))
+            self.images_right.append(img_right)
+        self.image = self.images_right[self.index]
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
@@ -120,7 +129,9 @@ world = World(world_data)
 run = True
 while run:
 
-    # screen.blit(bg_img, (0, 0))
+    clock.tick(fps)
+
+    screen.blit(bg_img, (0, 0))
 
     world.draw()
     player.update()
