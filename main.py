@@ -22,6 +22,7 @@ class Player:
     def __init__(self, x, y):
         self.images_right = []
         self.images_left = []
+        self.images_jump =[]
         self.index = 0
         self.counter = 0
         for num in range(0, 9):
@@ -31,6 +32,10 @@ class Player:
             self.images_right.append(img_right)
             self.images_left.append(img_left)
         self.image = self.images_right[self.index]
+        for num in range(1, 3):
+            img_jump = pygame.image.load(f'graphics/jump{num}.png')
+            img_jump = pygame.transform.scale(img_jump, (128, 128))
+            self.images_jump.append(img_jump)
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
@@ -42,6 +47,7 @@ class Player:
         dx = 0
         dy = 0
         walk_cooldown = 5
+        jump_cooldwon = 5
 
         # player movement - keys
         key = pygame.key.get_pressed()
@@ -49,6 +55,8 @@ class Player:
         if key[pygame.K_SPACE] and self.jumped == False:
             self.vel_y = - 15
             self.jumped = True
+            self.direction = 2
+            self.counter = 0
         if key[pygame.K_SPACE] == False:
             self.jumped = False
         # player movement (left and right)
@@ -81,6 +89,11 @@ class Player:
                 self.image = self.images_right[self.index]
             if self.direction == -1:
                 self.image = self.images_left[self.index]
+        if self.counter > jump_cooldwon:
+            self.counter = 0
+            self.index += 1
+            if self.direction == 2:
+                self.image = self.images_jump[self.index]
 
         # gravity for the player
         self.vel_y += 1
