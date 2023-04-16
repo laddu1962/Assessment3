@@ -21,34 +21,66 @@ bg_img = pygame.image.load('graphics/backGround.png')
 class Player:
     def __init__(self, x, y):
         self.images_right = []
+        self.images_left = []
         self.index = 0
         self.counter = 0
-        for num in range(1, 9):
+        for num in range(0, 9):
             img_right = pygame.image.load(f'graphics/player0{num}.png')
             img_right = pygame.transform.scale(img_right, (128, 128))
+            img_left = pygame.transform.flip(img_right, True, False)
             self.images_right.append(img_right)
+            self.images_left.append(img_left)
         self.image = self.images_right[self.index]
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
         self.vel_y = 0
         self.jumped = False
+        self.direction = 0
 
     def update(self):
         dx = 0
         dy = 0
+        walk_cooldown = 5
 
         # player movement - keys
         key = pygame.key.get_pressed()
+        # player movement (jump)
         if key[pygame.K_SPACE] and self.jumped == False:
             self.vel_y = - 15
             self.jumped = True
         if key[pygame.K_SPACE] == False:
             self.jumped = False
-        if key[pygame.K_LEFT]:
+        # player movement (left and right)
+        if key[pygame.K_a]:
             dx -= 5
-        if key[pygame.K_RIGHT]:
+            self.counter += 1
+            self.direction = -1
+        if key[pygame.K_d]:
             dx += 5
+            self.counter += 1
+            self.direction = 1
+        # if the player isn't moving then no animation
+        if key[pygame.K_a] == False and key[pygame.K_d] == False:
+            self.counter = 0
+            self.index = 0
+        # when player stops moving they are facing the direction they stopped at
+        if self.direction == 1:
+            self.image = self.images_right[self.index]
+        if self.direction == -1:
+            self.image = self.images_left[self.index]
+
+        # animation speed
+        if self.counter > walk_cooldown:
+            self.counter = 0
+            self.index += 1
+            if self.index == len(self.images_right):
+                self.index = 0
+            # animation depending on the direction
+            if self.direction == 1:
+                self.image = self.images_right[self.index]
+            if self.direction == -1:
+                self.image = self.images_left[self.index]
 
         # gravity for the player
         self.vel_y += 1
