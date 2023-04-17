@@ -25,10 +25,14 @@ class Player:
         self.images_jump =[]
         self.index = 0
         self.counter = 0
+        # player walking running animation
         for num in range(0, 9):
             img_right = pygame.image.load(f'graphics/player0{num}.png')
+            # player running to the right
             img_right = pygame.transform.scale(img_right, (128, 128))
+            # player running to the left, image is flipped
             img_left = pygame.transform.flip(img_right, True, False)
+            # player animation is added to a list
             self.images_right.append(img_right)
             self.images_left.append(img_left)
         self.image = self.images_right[self.index]
@@ -39,6 +43,8 @@ class Player:
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
+        self.width = self.image.get_width()
+        self.height = self.image.get_height()
         self.vel_y = 0
         self.jumped = False
         self.direction = 0
@@ -101,6 +107,19 @@ class Player:
             self.vel_y = 10
         dy += self.vel_y
 
+        # collision
+        for tile in world.tile_list:
+            # collision = y-direction
+            if tile[1].colliderect(self.rect.x, self.rect.y + dy, self.width, self.height):
+                # check if below the ground = jump
+                if self.vel_y < 0:
+                    dy = tile[1].bottom - self.rect.top
+                    self.vel_y = 0
+                # if player is above ground = fall
+                elif self.vel_y >= 0:
+                    dy = tile[1].top - self.rect.bottom
+                    self.vel_y = 0
+
         # updates for the player position/ coordinates
         self.rect.x += dx
         self.rect.y += dy
@@ -110,6 +129,7 @@ class Player:
             dy = 0
 
         screen.blit(self.image, self.rect)
+        pygame.draw.rect(screen, (255, 255, 255), self.rect, 2)
 
 
 class World:
@@ -151,6 +171,7 @@ class World:
     def draw(self):
         for tile in self.tile_list:
             screen.blit(tile[0], tile[1])
+            pygame.draw.rect(screen, (255, 255, 255), tile[1], 2)
 
 
 # this where the platforms are placed
