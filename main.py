@@ -48,6 +48,7 @@ class Player:
         self.vel_y = 0
         self.jumped = False
         self.direction = 0
+        self.speed = 0
 
     def update(self):
         dx = 0
@@ -131,6 +132,8 @@ class Player:
             self.rect.bottom = screen_height
             dy = 0
 
+        self.speed = dx
+
         screen.blit(self.image, self.rect)
         pygame.draw.rect(screen, (255, 255, 255), self.rect, 2)
 
@@ -173,8 +176,9 @@ class World:
 
     def draw(self):
         for tile in self.tile_list:
-            screen.blit(tile[0], tile[1])
             pygame.draw.rect(screen, (255, 255, 255), tile[1], 2)
+            screen.blit(tile[0], tile[1])
+            #tile[1][0] -= 4
 
 
 # this where the platforms are placed
