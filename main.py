@@ -45,8 +45,10 @@ class Player:
             img_attack_r = pygame.image.load(f'graphics/attack0{num}.png')
             # player attack to the right
             img_attack_r = pygame.transform.scale(img_attack_r, (82, 82))
-            # player running to the left, image is flipped
-            img_attack_l = pygame.transform.flip(img_attack_r, True, False)
+        for num in range(0, 5):
+            img_attack_l = pygame.image.load(f'graphics/attackl0{num}.png')
+            # player attack to the left
+            img_attack_l = pygame.transform.scale(img_attack_l, (82, 82))
             # player animation is added to a list
             self.attack_r.append(img_attack_r)
             self.attack_l.append(img_attack_l)
@@ -65,6 +67,7 @@ class Player:
         dy = 0
         walk_cooldown = 5
         jump_cooldwon = 5
+        attack_cooldown = 5
 
         # player movement - keys
         key = pygame.key.get_pressed()
@@ -72,7 +75,7 @@ class Player:
         if key[pygame.K_SPACE] and self.jumped == False:
             self.vel_y = - 15
             self.jumped = True
-            self.direction = 2
+            self.direction = 1
             self.counter = 0
             self.image = self.baseImage
         if key[pygame.K_SPACE] == False:
@@ -96,22 +99,18 @@ class Player:
         if self.direction == -1:
             self.image = self.images_left[self.index]
 
-        if key[pygame.K_a] and key[pygame.K_f] == True:
-            print(True)
-            if self.attack_frame > 4:
-                self.attack_frame = 0
-                self.attacking = False
-            if self.direction == -1:
-                self.attack_frame += 1
-                self.image = self.attack_l[self.attack_frame]
-                self.attack_frame += 1
-        if key[pygame.K_d] and key[pygame.K_f] == True:
-            print(True)
+        # player attacks
+        if key[pygame.K_f]:
             if self.attack_frame > 4:
                 self.attack_frame = 0
                 self.attacking = False
             if self.direction == 1:
                 self.image = self.attack_r[self.attack_frame]
+                self.counter += 1
+                self.attack_frame += 1
+            if self.direction == -1:
+                self.image = self.attack_l[self.attack_frame]
+                self.counter += 1
                 self.attack_frame += 1
 
         # animation speed
@@ -125,11 +124,25 @@ class Player:
                 self.image = self.images_right[self.index]
             if self.direction == -1:
                 self.image = self.images_left[self.index]
+
+        if self.counter > attack_cooldown:
+            self.counter = 0
+            self.index += 1
+            if self.index == len(self.attack_r):
+                self.index = 0
+            if self.index == len(self.attack_l):
+                self.index = 0
+            # animation depending on the direction
+            if self.direction == 1:
+                self.image = self.attack_r[self.index]
+            if self.direction == -1:
+                self.image = self.attack_l[self.index]
+
         if self.counter > jump_cooldwon:
             self.counter = 0
             self.index += 1
             if self.direction == 2:
-                self.image = self.images_jump[self.index]
+                self.image = self.baseImage[self.index]
 
         # gravity for the player
         self.vel_y += 1
@@ -166,19 +179,19 @@ class Player:
         screen.blit(self.image, self.rect)
         pygame.draw.rect(screen, (255, 255, 255), self.rect, 2)
 
-    # def attack(self):
+    #def attack(self):
         key = pygame.key.get_pressed()
-        if key[pygame.K_f]:
-            print(True)
-            if self.attack_frame > 4:
-                self.attack_frame = 0
-                self.attacking = False
-            if self.direction == -1:
-                self.attack_frame += 1
-                self.image = self.attack_r[self.attack_frame]
-            elif self.direction == 1:
-                self.image = self.attack_l[self.attack_frame]
-                self.attack_frame += 1
+        if self.attack_frame > 4:
+            self.attack_frame = 0
+            self.attacking = False
+        if key[pygame.K_d] and key[pygame.K_f] == True:
+            self.image = self.attack_r[self.attack_frame]
+        elif key[pygame.K_a] and key[pygame.K_f] == True:
+            self.image = self.attack_l[self.attack_frame]
+
+        self.attack_frame += 1
+
+
 
 
 class World:
@@ -274,7 +287,8 @@ while run:
 
     world.draw()
     player.update()
-    # player.attack()
+
+    #player.attack()
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
