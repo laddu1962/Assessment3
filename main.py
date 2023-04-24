@@ -56,6 +56,7 @@ class Player(pygame.sprite.Sprite):
             img_attack_r = pygame.image.load(f'graphics/attack0{num}.png')
             # player attack to the right
             img_attack_r = pygame.transform.scale(img_attack_r, (82, 82))
+            self.rect = self.image.get_rect()
         for num in range(0, 5):
             img_attack_l = pygame.image.load(f'graphics/attackl0{num}.png')
             # player attack to the left
@@ -63,7 +64,7 @@ class Player(pygame.sprite.Sprite):
             # player animation is added to a list
             self.attack_r.append(img_attack_r)
             self.attack_l.append(img_attack_l)
-        self.rect = self.image.get_rect()
+            self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
         self.width = self.image.get_width()
@@ -111,10 +112,12 @@ class Player(pygame.sprite.Sprite):
         if self.direction == -1:
             self.image = self.images_left[self.index]
 
+        self.mask = pygame.mask.from_surface((self.image))
+
         time_now = pygame.time.get_ticks()
 
     # player attacks
-        if key[pygame.K_f] and alien_bullet_group :
+        if key[pygame.K_f] and alien_bullet_group:
             bullet = Bullets(self.rect.centerx, self.rect.top)
             bullet_group.add(bullet)
             if self.attack_frame > 4:
@@ -128,6 +131,17 @@ class Player(pygame.sprite.Sprite):
                 self.image = self.attack_l[self.attack_frame]
                 self.counter += 1
                 self.attack_frame += 1
+            if pygame.sprite.spritecollide(self, alien_group, True):
+                self.kill(bullet)
+
+
+        #if pygame.sprite.spritecollide(self.attack_r, alien_bullet_group, True):
+            #bullet = Bullets(self.rect.centerx, self.rect.top)
+            #bullet_group.add(bullet)
+
+        #if pygame.sprite.spritecollide(pygame.image.load('graphics/attack05.png'), alien_bullet_group, True):
+            #bullet = Bullets(self.rect.centerx, self.rect.top)
+            #bullet_group.add(bullet)
 
         # animation speed
         if self.counter > walk_cooldown:
@@ -247,10 +261,10 @@ class Alien_Bullets(pygame.sprite.Sprite):
         self.rect.y += 2
         if self.rect.top > screen_height:
             self.kill()
-        if pygame.sprite.spritecollide(self, player_group, False, pygame.sprite.collide_mask):
+        if pygame.sprite.spritecollide(self, player_group, True):
             self.kill()
             # reduce spaceship health
-            player.health_remaining -= 1
+            #player.health_remaining -= 1
 
 
 class World:
@@ -340,7 +354,7 @@ alien_bullet_group = pygame.sprite.Group()
 bullet_group = pygame.sprite.Group()
 player_group = pygame.sprite.Group()
 
-player = Player(100, screen_height - 190, health=100)
+player = Player(100, screen_height - 190, 3)
 player_group.add()
 
 world = World(world_data)
