@@ -22,9 +22,14 @@ class Player:
     def __init__(self, x, y):
         self.images_right = []
         self.images_left = []
-        self.images_jump =[]
+        self.images_jump = []
+        self.attack_r = []
+        self.attack_l = []
         self.index = 0
         self.counter = 0
+        self.attacking = False
+        self.attack_frame = 0
+        self.baseImage = pygame.image.load("graphics/jump01.png")
         # player walking running animation
         for num in range(0, 9):
             img_right = pygame.image.load(f'graphics/player0{num}.png')
@@ -36,10 +41,15 @@ class Player:
             self.images_right.append(img_right)
             self.images_left.append(img_left)
         self.image = self.images_right[self.index]
-        for num in range(1, 3):
-            img_jump = pygame.image.load(f'graphics/jump{num}.png')
-            img_jump = pygame.transform.scale(img_jump, (32, 32))
-            self.images_jump.append(img_jump)
+        for num in range(0, 5):
+            img_attack_r = pygame.image.load(f'graphics/attack0{num}.png')
+            # player attack to the right
+            img_attack_r = pygame.transform.scale(img_attack_r, (82, 82))
+            # player running to the left, image is flipped
+            img_attack_l = pygame.transform.flip(img_attack_r, True, False)
+            # player animation is added to a list
+            self.attack_r.append(img_attack_r)
+            self.attack_l.append(img_attack_l)
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
@@ -64,6 +74,7 @@ class Player:
             self.jumped = True
             self.direction = 2
             self.counter = 0
+            self.image = self.baseImage
         if key[pygame.K_SPACE] == False:
             self.jumped = False
         # player movement (left and right)
@@ -84,6 +95,24 @@ class Player:
             self.image = self.images_right[self.index]
         if self.direction == -1:
             self.image = self.images_left[self.index]
+
+        if key[pygame.K_a] and key[pygame.K_f] == True:
+            print(True)
+            if self.attack_frame > 4:
+                self.attack_frame = 0
+                self.attacking = False
+            if self.direction == -1:
+                self.attack_frame += 1
+                self.image = self.attack_l[self.attack_frame]
+                self.attack_frame += 1
+        if key[pygame.K_d] and key[pygame.K_f] == True:
+            print(True)
+            if self.attack_frame > 4:
+                self.attack_frame = 0
+                self.attacking = False
+            if self.direction == 1:
+                self.image = self.attack_r[self.attack_frame]
+                self.attack_frame += 1
 
         # animation speed
         if self.counter > walk_cooldown:
@@ -137,6 +166,20 @@ class Player:
         screen.blit(self.image, self.rect)
         pygame.draw.rect(screen, (255, 255, 255), self.rect, 2)
 
+    # def attack(self):
+        key = pygame.key.get_pressed()
+        if key[pygame.K_f]:
+            print(True)
+            if self.attack_frame > 4:
+                self.attack_frame = 0
+                self.attacking = False
+            if self.direction == -1:
+                self.attack_frame += 1
+                self.image = self.attack_r[self.attack_frame]
+            elif self.direction == 1:
+                self.image = self.attack_l[self.attack_frame]
+                self.attack_frame += 1
+
 
 class World:
     def __init__(self, data):
@@ -179,7 +222,6 @@ class World:
             pygame.draw.rect(screen, (255, 255, 255), tile[1], 2)
             screen.blit(tile[0], tile[1])
             # tile[1][0] -= 4
-
 
 
 # this where the platforms are placed
@@ -232,7 +274,7 @@ while run:
 
     world.draw()
     player.update()
-
+    # player.attack()
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
