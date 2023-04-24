@@ -10,6 +10,9 @@ fps = 60
 screen_width = 1920
 screen_height = 1080
 
+red = (255, 0, 0)
+green = (0, 255, 0)
+
 screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption('Platformer')
 
@@ -24,8 +27,8 @@ tile_size = 32
 bg_img = pygame.image.load('graphics/backGround.png')
 
 
-class Player:
-    def __init__(self, x, y):
+class Player(pygame.sprite.Sprite):
+    def __init__(self, x, y, health):
         self.images_right = []
         self.images_left = []
         self.images_jump = []
@@ -35,6 +38,8 @@ class Player:
         self.counter = 0
         self.attacking = False
         self.attack_frame = 0
+        self.health_start = health
+        self.health_remaining = health
         self.baseImage = pygame.image.load("graphics/jump01.png")
         # player walking running animation
         for num in range(0, 9):
@@ -74,6 +79,7 @@ class Player:
         walk_cooldown = 5
         jump_cooldwon = 5
         attack_cooldown = 5
+        cooldown = 500
 
         # player movement - keys
         key = pygame.key.get_pressed()
@@ -107,8 +113,8 @@ class Player:
 
         time_now = pygame.time.get_ticks()
 
-       # player attacks
-        if key[pygame.K_f]:
+    # player attacks
+        if key[pygame.K_f] and alien_bullet_group :
             bullet = Bullets(self.rect.centerx, self.rect.top)
             bullet_group.add(bullet)
             if self.attack_frame > 4:
@@ -186,6 +192,13 @@ class Player:
 
         self.speed = dx
 
+        pygame.draw.rect(screen, red, (self.rect.x, (self.rect.top - 15), self.rect.width, 15))
+        if self.health_remaining > 0:
+            pygame.draw.rect(screen, green, (self.rect.x, (self.rect.top - 15), int(self.rect.width * (self.health_remaining / self.health_start)), 15))
+        elif self.health_remaining <= 0:
+            self.kill()
+            quit()
+
         screen.blit(self.image, self.rect)
         pygame.draw.rect(screen, (255, 255, 255), self.rect, 2)
 
@@ -203,6 +216,7 @@ class Bullets(pygame.sprite.Sprite):
             self.kill()
         if pygame.sprite.spritecollide(self, alien_group, True):
             self.kill()
+
 
 class Aliens(pygame.sprite.Sprite):
     def __init__(self, x, y):
@@ -233,10 +247,10 @@ class Alien_Bullets(pygame.sprite.Sprite):
         self.rect.y += 2
         if self.rect.top > screen_height:
             self.kill()
-       #if pygame.sprite.spritecollide(self,spaceship_group, False, pygame.sprite.collide_mask):
+        if pygame.sprite.spritecollide(self, player_group, False, pygame.sprite.collide_mask):
             self.kill()
             # reduce spaceship health
-            #spaceship.health_remaining -= 1
+            player.health_remaining -= 1
 
 
 class World:
@@ -320,12 +334,16 @@ world_data = [
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
 ]
 
-player = Player(100, screen_height - 190)
-world = World(world_data)
 spaceship_group = pygame.sprite.Group()
 alien_group = pygame.sprite.Group()
 alien_bullet_group = pygame.sprite.Group()
 bullet_group = pygame.sprite.Group()
+player_group = pygame.sprite.Group()
+
+player = Player(100, screen_height - 190, health=100)
+player_group.add()
+
+world = World(world_data)
 
 
 def create_aliens():
@@ -365,9 +383,6 @@ while run:
         alien_bullet_group.add(alien_bullet)
         last_alien_shot = time_now
 
-
-
-    #player.attack()
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
