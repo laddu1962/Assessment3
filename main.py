@@ -12,6 +12,9 @@ screen_height = 1080
 
 red = (255, 0, 0)
 green = (0, 255, 0)
+white = (255, 255, 255)
+
+font40 = pygame.font.Font(None, 40)
 
 screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption('Platformer')
@@ -19,13 +22,34 @@ pygame.display.set_caption('Platformer')
 # change the names!!
 rows = 1
 cols = 17
+
+
 alien_cooldown = 1000
 last_alien_shot = pygame.time.get_ticks()
+
+
+score = 0
+score_increment = 10
 
 tile_size = 32
 
 bg_img = pygame.image.load('graphics/backGround.png')
 
+countdown = 3
+final_count = pygame.time.get_ticks()
+game_over = 0
+
+
+def draw_text(text, font, text_col, x, y):
+    img = font.render(text, True, text_col)
+    screen.blit(img, (x,y))
+
+
+def score_increase():
+    global score
+    global score_increment
+
+    score += score_increment
 
 class Player(pygame.sprite.Sprite):
     def __init__(self, x, y, health):
@@ -40,6 +64,7 @@ class Player(pygame.sprite.Sprite):
         self.attack_frame = 0
         self.health_start = health
         self.health_remaining = health
+        self.last_shot = pygame.time.get_ticks()
         self.baseImage = pygame.image.load("graphics/jump01.png")
         # player walking running animation
         for num in range(0, 9):
@@ -117,9 +142,11 @@ class Player(pygame.sprite.Sprite):
         time_now = pygame.time.get_ticks()
 
     # player attacks
-        if key[pygame.K_f] and alien_bullet_group:
-            bullet = Bullets(self.rect.centerx, self.rect.top)
-            bullet_group.add(bullet)
+        if key[pygame.K_p] and time_now - self.last_shot > cooldown:
+            bullet = Projectiles(self.rect.centerx, self.rect.top)
+            projectile_group.add(bullet)
+            self.last_shot = time_now
+        if key[pygame.K_p]:
             if self.attack_frame > 4:
                 self.attack_frame = 0
                 self.attacking = False
@@ -131,17 +158,7 @@ class Player(pygame.sprite.Sprite):
                 self.image = self.attack_l[self.attack_frame]
                 self.counter += 1
                 self.attack_frame += 1
-            if pygame.sprite.spritecollide(self, alien_group, True):
-                self.kill(bullet)
 
-
-        #if pygame.sprite.spritecollide(self.attack_r, alien_bullet_group, True):
-            #bullet = Bullets(self.rect.centerx, self.rect.top)
-            #bullet_group.add(bullet)
-
-        #if pygame.sprite.spritecollide(pygame.image.load('graphics/attack05.png'), alien_bullet_group, True):
-            #bullet = Bullets(self.rect.centerx, self.rect.top)
-            #bullet_group.add(bullet)
 
         # animation speed
         if self.counter > walk_cooldown:
@@ -206,18 +223,10 @@ class Player(pygame.sprite.Sprite):
 
         self.speed = dx
 
-        pygame.draw.rect(screen, red, (self.rect.x, (self.rect.top - 15), self.rect.width, 15))
-        if self.health_remaining > 0:
-            pygame.draw.rect(screen, green, (self.rect.x, (self.rect.top - 15), int(self.rect.width * (self.health_remaining / self.health_start)), 15))
-        elif self.health_remaining <= 0:
-            self.kill()
-            quit()
-
         screen.blit(self.image, self.rect)
-        pygame.draw.rect(screen, (255, 255, 255), self.rect, 2)
 
 
-class Bullets(pygame.sprite.Sprite):
+class Projectiles(pygame.sprite.Sprite):
     def __init__(self, x, y):
         pygame.sprite.Sprite.__init__(self)
         self.image = pygame.image.load("graphics/Bullet.png")
@@ -230,6 +239,7 @@ class Bullets(pygame.sprite.Sprite):
             self.kill()
         if pygame.sprite.spritecollide(self, alien_group, True):
             self.kill()
+            score_increase()
 
 
 class Aliens(pygame.sprite.Sprite):
@@ -250,7 +260,7 @@ class Aliens(pygame.sprite.Sprite):
 
 
 # creating Alien Bullets class
-class Alien_Bullets(pygame.sprite.Sprite):
+class Alien_Projectiles(pygame.sprite.Sprite):
     def __init__(self, x, y):
         pygame.sprite.Sprite.__init__(self)
         self.image = pygame.image.load("graphics/Bullet.png")
@@ -312,7 +322,7 @@ class World:
 
 # this where the platforms are placed
 world_data = [
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
     [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
     [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
     [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
@@ -329,9 +339,9 @@ world_data = [
     [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 1, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
     [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
     [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
     [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
     [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 1, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
     [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
@@ -339,8 +349,8 @@ world_data = [
     [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
     [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
     [1, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
     [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
     [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
     [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
@@ -350,12 +360,11 @@ world_data = [
 
 spaceship_group = pygame.sprite.Group()
 alien_group = pygame.sprite.Group()
-alien_bullet_group = pygame.sprite.Group()
-bullet_group = pygame.sprite.Group()
+alien_projectiles_group = pygame.sprite.Group()
+projectile_group = pygame.sprite.Group()
 player_group = pygame.sprite.Group()
-
 player = Player(100, screen_height - 190, 3)
-player_group()
+player_group.add()
 
 world = World(world_data)
 
@@ -377,26 +386,44 @@ while run:
 
     screen.blit(bg_img, (0, 0))
 
-    world.draw()
-    player.update()
+    if countdown == 0:
+        # shoot
+        if time_now - last_alien_shot > alien_cooldown and len(alien_projectiles_group) < 5 and len(alien_group) > 0:
+            attacking_alien = random.choice(alien_group.sprites())
+            alien_bullet = Alien_Projectiles(attacking_alien.rect.centerx, attacking_alien.rect.bottom)
+            alien_projectiles_group.add(alien_bullet)
+            last_alien_shot = time_now
 
-    alien_group.update()
-    alien_bullet_group.update()
-    bullet_group.update()
+        # are all the enemies destroyed
+        if len(alien_group) == 0:
+            game_over = 1
+            draw_text('YOU WIN!', font40, green, int(screen_width/2 - 110), int(screen_height / 2+50))
 
+         # score
+        screen.blit(font40.render('score: {}'.format(score), True, (255,0,0)), (100,75))
+
+        world.draw()
+        player.update()
+
+        # update groups
+        alien_group.update()
+        alien_projectiles_group.update()
+        projectile_group.update()
+
+    if countdown > 0:
+        draw_text('GET READY', font40, green, int(screen_width/2 - 110), int(screen_height / 2+50))
+        draw_text(str(countdown), font40, green, int(screen_width / 2 - 30), int(screen_height / 2 + 100))
+        count_timer = pygame.time.get_ticks()
+        if count_timer - final_count > 1000:
+            countdown -= 1
+            final_count = count_timer
+
+    # draw sprite group
     alien_group.draw(screen)
-    alien_bullet_group.draw(screen)
-    bullet_group.draw(screen)
+    alien_projectiles_group.draw(screen)
+    projectile_group.draw(screen)
 
     time_now = pygame.time.get_ticks()
-
-    # shoot
-    if time_now - last_alien_shot > alien_cooldown and len(alien_bullet_group) < 5 and len(alien_group) > 0:
-        attacking_alien = random.choice(alien_group.sprites())
-        alien_bullet = Alien_Bullets(attacking_alien.rect.centerx, attacking_alien.rect.bottom)
-        alien_bullet_group.add(alien_bullet)
-        last_alien_shot = time_now
-
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
