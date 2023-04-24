@@ -258,13 +258,13 @@ class Alien_Bullets(pygame.sprite.Sprite):
         self.rect.center = [x, y]
 
     def update(self):
-        self.rect.y += 2
+        self.rect.y += 3
         if self.rect.top > screen_height:
             self.kill()
-        if pygame.sprite.spritecollide(self, player_group, True):
+        if pygame.sprite.spritecollide(self, player_group, False, pygame.sprite.collide_mask):
             self.kill()
             # reduce spaceship health
-            #player.health_remaining -= 1
+            player.health_remaining -= 1
 
 
 class World:
@@ -355,7 +355,7 @@ bullet_group = pygame.sprite.Group()
 player_group = pygame.sprite.Group()
 
 player = Player(100, screen_height - 190, 3)
-player_group.add()
+player_group()
 
 world = World(world_data)
 
