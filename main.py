@@ -7,27 +7,30 @@ pygame.init()
 clock = pygame.time.Clock()
 fps = 60
 
+# screen dimensions
 screen_width = 1920
 screen_height = 1080
 
+# colours
 red = (255, 0, 0)
 green = (0, 255, 0)
 white = (255, 255, 255)
 
+# basic font
 font40 = pygame.font.Font(None, 40)
 
 screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption('Platformer')
 
-# change the names!!
+# enemy placement
 rows = 1
 cols = 17
 
-
+# alien shooting cooldown
 alien_cooldown = 1000
 last_alien_shot = pygame.time.get_ticks()
 
-
+# score stats
 score = 0
 score_increment = 10
 
@@ -35,22 +38,27 @@ tile_size = 32
 
 bg_img = pygame.image.load('graphics/backGround.png')
 
+# for the beginning and ending of the game
 countdown = 3
 final_count = pygame.time.get_ticks()
 game_over = 0
 
 
+# text that will be show at the start
 def draw_text(text, font, text_col, x, y):
     img = font.render(text, True, text_col)
     screen.blit(img, (x,y))
 
 
+# how the score works
 def score_increase():
     global score
     global score_increment
 
     score += score_increment
 
+
+# everything to do with the player sprites, movement and attacks
 class Player(pygame.sprite.Sprite):
     def __init__(self, x, y, health):
         self.images_right = []
@@ -137,15 +145,16 @@ class Player(pygame.sprite.Sprite):
         if self.direction == -1:
             self.image = self.images_left[self.index]
 
-        self.mask = pygame.mask.from_surface((self.image))
 
         time_now = pygame.time.get_ticks()
 
-    # player attacks
+    # player attacks - attack that send projectiles
         if key[pygame.K_p] and time_now - self.last_shot > cooldown:
             bullet = Projectiles(self.rect.centerx, self.rect.top)
             projectile_group.add(bullet)
             self.last_shot = time_now
+            # projectiles have a delay
+            # with the projectiles the player does the attack animation
         if key[pygame.K_p]:
             if self.attack_frame > 4:
                 self.attack_frame = 0
@@ -171,7 +180,7 @@ class Player(pygame.sprite.Sprite):
                 self.image = self.images_right[self.index]
             if self.direction == -1:
                 self.image = self.images_left[self.index]
-
+        # animation speed for the attack/ projectiles
         if self.counter > attack_cooldown:
             self.counter = 0
             self.index += 1
@@ -226,6 +235,7 @@ class Player(pygame.sprite.Sprite):
         screen.blit(self.image, self.rect)
 
 
+# class for the projectiles the player shoot up
 class Projectiles(pygame.sprite.Sprite):
     def __init__(self, x, y):
         pygame.sprite.Sprite.__init__(self)
@@ -233,6 +243,7 @@ class Projectiles(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.center = [x, y]
 
+# this is for the collision
     def update(self):
         self.rect.y -= 5
         if self.rect.bottom < 0:
@@ -242,6 +253,7 @@ class Projectiles(pygame.sprite.Sprite):
             score_increase()
 
 
+# the enemy of the game that is randomised
 class Aliens(pygame.sprite.Sprite):
     def __init__(self, x, y):
         pygame.sprite.Sprite.__init__(self)
@@ -259,7 +271,7 @@ class Aliens(pygame.sprite.Sprite):
             self.move_counter *= self.move_direction
 
 
-# creating Alien Bullets class
+# creating enemy projectiles class
 class Alien_Projectiles(pygame.sprite.Sprite):
     def __init__(self, x, y):
         pygame.sprite.Sprite.__init__(self)
@@ -278,6 +290,7 @@ class Alien_Projectiles(pygame.sprite.Sprite):
 
 
 class World:
+    # everything regarding the tiles within the game and layout
     def __init__(self, data):
         self.tile_list = []
         # individual tile images
@@ -290,12 +303,14 @@ class World:
             col_count = 0
             for tile in row:
                 if tile == 1:
+                    # all the tiles are have a rect for collision and scaled to match
                     img = pygame.transform.scale(dirt_img, (tile_size, tile_size))
                     img_rect = img.get_rect()
                     img_rect.x = col_count * tile_size
                     img_rect.y = row_count * tile_size
                     tile = (img, img_rect)
                     self.tile_list.append(tile)
+                    # each tile is different and this includes middle and corner pieces
                 if tile == 2:
                     img = pygame.transform.scale(left_img, (tile_size, tile_size))
                     img_rect = img.get_rect()
@@ -320,7 +335,7 @@ class World:
             # tile[1][0] -= 4
 
 
-# this where the platforms are placed
+# this where the tiles/ platforms are placed
 world_data = [
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
     [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
@@ -357,7 +372,7 @@ world_data = [
     [1, 0, 0, 0, 0, 0, 0, 0, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
 ]
-
+# where all the groups are called
 spaceship_group = pygame.sprite.Group()
 alien_group = pygame.sprite.Group()
 alien_projectiles_group = pygame.sprite.Group()
@@ -399,7 +414,7 @@ while run:
             game_over = 1
             draw_text('YOU WIN!', font40, green, int(screen_width/2 - 110), int(screen_height / 2+50))
 
-         # score
+        # thw score as part of the UI
         screen.blit(font40.render('score: {}'.format(score), True, (255,0,0)), (100,75))
 
         world.draw()
@@ -410,6 +425,7 @@ while run:
         alien_projectiles_group.update()
         projectile_group.update()
 
+    # for the text/ countdown that appears at the start of the game
     if countdown > 0:
         draw_text('GET READY', font40, green, int(screen_width/2 - 110), int(screen_height / 2+50))
         draw_text(str(countdown), font40, green, int(screen_width / 2 - 30), int(screen_height / 2 + 100))
