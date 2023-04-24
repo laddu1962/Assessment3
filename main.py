@@ -1,5 +1,6 @@
 import pygame
 from pygame.locals import *
+import random
 
 pygame.init()
 
@@ -12,6 +13,11 @@ screen_height = 1080
 screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption('Platformer')
 
+# change the names!!
+rows = 1
+cols = 17
+alien_cooldown = 1000
+last_alien_shot = pygame.time.get_ticks()
 
 tile_size = 32
 
@@ -99,8 +105,12 @@ class Player:
         if self.direction == -1:
             self.image = self.images_left[self.index]
 
-        # player attacks
+        time_now = pygame.time.get_ticks()
+
+       # player attacks
         if key[pygame.K_f]:
+            bullet = Bullets(self.rect.centerx, self.rect.top)
+            bullet_group.add(bullet)
             if self.attack_frame > 4:
                 self.attack_frame = 0
                 self.attacking = False
@@ -179,19 +189,54 @@ class Player:
         screen.blit(self.image, self.rect)
         pygame.draw.rect(screen, (255, 255, 255), self.rect, 2)
 
-    #def attack(self):
-        key = pygame.key.get_pressed()
-        if self.attack_frame > 4:
-            self.attack_frame = 0
-            self.attacking = False
-        if key[pygame.K_d] and key[pygame.K_f] == True:
-            self.image = self.attack_r[self.attack_frame]
-        elif key[pygame.K_a] and key[pygame.K_f] == True:
-            self.image = self.attack_l[self.attack_frame]
 
-        self.attack_frame += 1
+class Bullets(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = pygame.image.load("graphics/Bullet.png")
+        self.rect = self.image.get_rect()
+        self.rect.center = [x, y]
+
+    def update(self):
+        self.rect.y -= 5
+        if self.rect.bottom < 0:
+            self.kill()
+        if pygame.sprite.spritecollide(self, alien_group, True):
+            self.kill()
+
+class Aliens(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = pygame.image.load("graphics/Invader" + str(random.randint(1, 5)) + ".png")
+        self.rect = self.image.get_rect()
+        self.rect.center = [x, y]
+        self.move_counter = 0
+        self.move_direction = 1
+
+    def update(self):
+        self.rect.x += self.move_direction
+        self.move_counter += 1
+        if abs(self.move_counter) > 75:
+            self.move_direction *= -1
+            self.move_counter *= self.move_direction
 
 
+# creating Alien Bullets class
+class Alien_Bullets(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = pygame.image.load("graphics/Bullet.png")
+        self.rect = self.image.get_rect()
+        self.rect.center = [x, y]
+
+    def update(self):
+        self.rect.y += 2
+        if self.rect.top > screen_height:
+            self.kill()
+       #if pygame.sprite.spritecollide(self,spaceship_group, False, pygame.sprite.collide_mask):
+            self.kill()
+            # reduce spaceship health
+            #spaceship.health_remaining -= 1
 
 
 class World:
@@ -277,6 +322,21 @@ world_data = [
 
 player = Player(100, screen_height - 190)
 world = World(world_data)
+spaceship_group = pygame.sprite.Group()
+alien_group = pygame.sprite.Group()
+alien_bullet_group = pygame.sprite.Group()
+bullet_group = pygame.sprite.Group()
+
+
+def create_aliens():
+    # generate aliens
+    for row in range(rows):
+        for item in range(cols):
+            alien = Aliens(150 + item * 100, 150 + row * 70)
+            alien_group.add(alien)
+
+
+create_aliens()
 
 run = True
 while run:
@@ -287,6 +347,25 @@ while run:
 
     world.draw()
     player.update()
+
+    alien_group.update()
+    alien_bullet_group.update()
+    bullet_group.update()
+
+    alien_group.draw(screen)
+    alien_bullet_group.draw(screen)
+    bullet_group.draw(screen)
+
+    time_now = pygame.time.get_ticks()
+
+    # shoot
+    if time_now - last_alien_shot > alien_cooldown and len(alien_bullet_group) < 5 and len(alien_group) > 0:
+        attacking_alien = random.choice(alien_group.sprites())
+        alien_bullet = Alien_Bullets(attacking_alien.rect.centerx, attacking_alien.rect.bottom)
+        alien_bullet_group.add(alien_bullet)
+        last_alien_shot = time_now
+
+
 
     #player.attack()
 
